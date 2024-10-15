@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Book Detail</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        display: flex;
+        justify-content: center; /* Center horizontally */
+        align-items: center; /* Center vertically */
+        min-height: 100vh; /* Minimum height to 100% of the viewport height */
+        margin: 0; /* Remove default margin */
+        background-image: url("../static/images/8830758_505.jpg"); /* Add your background image URL */
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        font-family: "Roboto", sans-serif; /* Change the font family */
+      }
+
+      .container {
+        width: 80%; /* Adjust width as needed */
+        margin: 0 auto; /* This will center the container */
+        border: 1px solid #000; /* This adds a border around the container */
+        padding: 20px; /* Add some spacing inside the border */
+        box-shadow: 0px 0px 10px #888888; /* Optional: Adds a shadow for depth */
+        font-family: "Arial", sans-serif; /* This changes the font */
+        background-color: #ffffff;
+      }
+
+      .book-image {
+        text-align: center; /* Centers the image */
+        margin-bottom: 20px; /* Spacing below the image */
+      }
+
+      .book-image img {
+        max-width: 100%; /* Makes sure the image is responsive */
+        height: auto; /* Maintains aspect ratio */
+      }
+
+      .book-title,
+      .book-metadata,
+      .book-rating,
+      .book-price,
+      .book-genre,
+      .reviews {
+        text-align: center; /* Center text for all book sections */
+      }
+      .book-description {
+        border: 1px solid #ddd; /* Example border */
+        padding: 20px; /* Example padding */
+        margin-top: 20px; /* Add space above the section */
+        background-color: #f8f8f8; /* Light background for the box */
+      }
+
+      .button {
+        margin: 10px; /* Spacing around buttons */
+        text-decoration: none; /* Removes underline from links */
+        padding: 10px 20px; /* Padding inside the buttons */
+        border: none; /* Removes border from buttons */
+        background-color: #148d38; /* Background color for buttons */
+        color: white; /* Text color for buttons */
+        border-radius: 5px; /* Rounded corners for buttons */
+        font-size: 16px; /* Increases font size for buttons */
+        display: inline-block; /* Allows buttons to sit side by side */
+      }
+      .button-container {
+        text-align: center; /* This will center the buttons if they are inline-block elements */
+        padding: 20px 0;
+      }
+
+      /* Optional: Adds a hover effect for buttons */
+      .button:hover {
+        background-color: #00b35f;
+        cursor: pointer; /* Changes the cursor to indicate it's clickable */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loader" style="display: none">Loading...</div>
+    <div class="container">
+      {% if books %} {% set book = books[0] %}
+      <div class="book-title">
+        <strong>Title of the Book:</strong> {{ book.volumeInfo.title }}
+      </div>
+      <div class="book-metadata">
+        <strong>Author of the Book:</strong> {{ book.volumeInfo.authors |
+        join(', ') }} <br />
+        <strong>Published Date:</strong> {{ book.volumeInfo.publishedDate }}
+        <br />
+        <strong>Publisher of the Book:</strong> {{ book.volumeInfo.publisher }}
+      </div>
+      <div class="book-rating">
+        <!-- Display rating if available -->
+      </div>
+      <div class="book-image">
+        {% if book.volumeInfo.imageLinks %}
+        <img
+          src="{{ book.volumeInfo.imageLinks.thumbnail }}"
+          alt="{{ book.volumeInfo.title }}"
+        />
+        {% else %}
+        <img src="/path-to-book-cover.jpg" alt="{{ book.volumeInfo.title }}" />
+        {% endif %}
+      </div>
+      <div class="book-price">
+        <!-- Display price if available -->
+        {% if book.saleInfo and book.saleInfo.retailPrice %}
+        <p>
+          Price: {{ book.saleInfo.retailPrice.amount }} {{
+          book.saleInfo.retailPrice.currencyCode }}
+        </p>
+        {% endif %}
+      </div>
+      <div class="button-container">
+        <!-- Check if preview link is available -->
+        {% if book.volumeInfo.previewLink %}
+        <a href="{{ book.volumeInfo.previewLink }}" class="button"
+          >Preview Link</a
+        >
+        {% endif %}
+        <!-- Check if buy link is available -->
+        {% if book.saleInfo and book.saleInfo.buyLink %}
+        <a href="{{ book.saleInfo.buyLink }}" class="button">Buy Ebook</a>
+        {% endif %}
+        <button id="searchNearby" class="button">
+          Search Nearby Bookstores
+        </button>
+      </div>
+      <div class="book-description">
+        <h3>About this book</h3>
+        <p>{{ book.volumeInfo.description }}</p>
+      </div>
+      <div class="book-genre">
+        <!-- Display genre if available -->
+      </div>
+      <div class="reviews">
+        <h3>Other Information about the book</h3>
+        <p>Page Count: {{ book.volumeInfo.pageCount }}</p>
+        <p>Language of the Book: {{ book.volumeInfo.language }}</p>
+      </div>
+      <div class="clear"></div>
+      {% else %}
+      <p>No book data available</p>
+      {% endif %}
+    </div>
+    <script>
+      document.getElementById("loader").style.display = "block";
+
+      function saveLocationToLocalStorage(latitude, longitude) {
+        localStorage.setItem("latitude", latitude);
+        localStorage.setItem("longitude", longitude);
+      }
+
+      function getLocation() {
+        if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            function (position) {
+              saveLocationToLocalStorage(
+                position.coords.latitude,
+                position.coords.longitude
+              );
+              document.getElementById("loader").style.display = "none";
+            },
+            function (error) {
+              console.error(
+                "Error Code = " + error.code + " - " + error.message
+              );
+              document.getElementById("loader").style.display = "none";
+            }
+          );
+        } else {
+          console.log("Geolocation is not supported by this browser.");
+          document.getElementById("loader").style.display = "none";
+        }
+      }
+
+      function checkLocation() {
+        const latitude = localStorage.getItem("latitude");
+        const longitude = localStorage.getItem("longitude");
+
+        if (latitude && longitude) {
+          console.log("Location found in local storage:", latitude, longitude);
+          document.getElementById("loader").style.display = "none";
+        } else {
+          getLocation();
+        }
+      }
+
+      checkLocation();
+
+      document
+        .getElementById("searchNearby")
+        .addEventListener("click", function () {
+          const latitude = localStorage.getItem("latitude");
+          const longitude = localStorage.getItem("longitude");
+
+          if (latitude && longitude) {
+            fetch(`/nearby_bookstores?lat=${latitude}&lng=${longitude}`)
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.success) {
+                  console.log(data.url);
+                  // If successful, open the Google Maps link
+                  window.open(data.url, "_blank");
+                } else {
+                  // If unsuccessful, display the error message
+                  alert("Error: " + data.error);
+                }
+              })
+              .catch((error) => console.error("Error:", error));
+          } else {
+            alert(
+              "Location not available. Please allow access to your location."
+            );
+          }
+        });
+    </script>
+  </body>
+</html>
