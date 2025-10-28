@@ -6,7 +6,7 @@ class GoogleBooksSearch(MethodView):
 
     def get(self):
         query = request.args.get('isbn')
-        # apiKey = 'AIzaSyABM17l_lT8q6OnKSAHUkUsnjCCrY4jDCc'
+        # apiKey = '********'
         apiKey = os.environ.get('GOOGLE_BOOKS_API_KEY')
         if query:
             result = googlebooks.search_books(query,apiKey)
